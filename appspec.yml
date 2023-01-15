@@ -1,0 +1,18 @@
+version: 0.0
+os: linux
+files:
+  - source: /
+    destination: /home/ec2-user/demo
+hooks:
+  BeforeInstall:
+    - location: scripts/before-install.sh
+      timeout: 180
+  AfterInstall:
+    - location: scripts/after-install.sh
+      timeout: 180
+  ApplicationStart:
+    - location: scripts/boot.sh
+      timeout: 180
+  ApplicationStop:
+    - location: scripts/server_stop.sh
+      timeout: 180

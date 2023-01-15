@@ -1,0 +1,45 @@
+version: 0.2
+phases:
+#  install:
+#    runtime-versions:
+#      docker: 18
+  pre_build:
+    commands:
+      - echo Connecting to Amazon ECR...
+      #- $(aws ecr get-login --region $AWS_DEFAULT_REGION --no-include-email)
+      - aws ecr get-login-password --region us-west-2 | docker login --username AWS --password-stdin 853192360440.dkr.ecr.us-west-2.amazonaws.com
+      - REPOSITORY_URI_APP=853192360440.dkr.ecr.us-west-2.amazonaws.com/app
+      - REPOSITORY_URI_DB=853192360440.dkr.ecr.us-west-2.amazonaws.com/db
+      - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
+      - IMAGE_TAG=build-$(echo $CODEBUILD_BUILD_ID | awk -F":" '{print $2}')
+  build:
+    commands:
+      - echo Build started on `date`
+      - echo Building the Docker image...
+      #- docker build --platform linux/amd64 -t $REPOSITORY_URI:latest .
+      #- docker build -t $REPOSITORY_URI:latest .
+      - docker-compose --file=docker-compose-prod.yml build
+      - docker tag $REPOSITORY_URI_APP:latest $REPOSITORY_URI_APP:$IMAGE_TAG
+      - docker tag $REPOSITORY_URI_DB:latest $REPOSITORY_URI_DB:$IMAGE_TAG
+  post_build:
+    commands:
+      - echo Build completed on `date`
+      - echo Pushing the Docker images...
+      - docker image push --all-tags $REPOSITORY_URI_APP
+      - docker image push --all-tags $REPOSITORY_URI_DB
+      #- docker push $REPOSITORY_URI_APP:latest
+      #- docker push $REPOSITORY_URI_APP:$IMAGE_TAG
+      #- docker push $REPOSITORY_URI_DB:latest
+      #- docker push $REPOSITORY_URI_DB:$IMAGE_TAG
+      #- docker-compose --file=docker-compose-prod.yml push   #only push build images
+      #- echo Writing image definitions file...
+      #- printf '[{"name":"demoblazorserverapp","imageUri":"%s"}]'
+      #  $REPOSITORY_URI:$IMAGE_TAG > imagedefinitions.json
+      #- cat imagedefinitions.json
+artifacts:
+  files:
+    - scripts/*.sh
+    - appspec.yml
+    - 'docker-compose-vm.yml'
+    #- 'Dockerrun.aws.json'
+    #- 'magedefinitions.json'

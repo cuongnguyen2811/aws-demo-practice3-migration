@@ -1,0 +1,56 @@
+{
+    "AWSEBDockerrunVersion": 2,
+    "containerDefinitions": [
+      {
+        "name": "demoappdb",
+        "image": "914656783834.dkr.ecr.us-west-2.amazonaws.com/db",
+        "hostname": "app-db",
+        "essential": false,
+        "environment": [
+            {
+                "name": "ACCEPT_EULA",
+                "value": "Y"
+            },
+            {
+                "name": "SA_PASSWORD",
+                "value": "password@12345#"
+            }
+        ],
+        "memory": 1024,
+        "portMappings": [
+          {
+            "hostPort": 1433,
+            "containerPort": 8002
+          }
+        ]
+      },
+      {
+        "name": "demoblazorserverapp",
+        "image": "914656783834.dkr.ecr.us-west-2.amazonaws.com/app",
+        "hostname": "demo-blazor-app",
+        "essential": true,
+        "portMappings": [ 
+          {
+            "hostPort": 80,
+            "containerPort": 8001
+          }
+        ],
+        "links": ["demoappdb"],
+        "environment": [
+            {
+                "name": "DB_HOST",
+                "value": "demoappdb"
+            },
+            {
+                "name": "DB_NAME",
+                "value": "DemoBlazorApp"
+            },
+            {
+                "name": "DB_SA_PASSWORD",
+                "value": "password@12345#"
+            }
+        ],
+        "memory": 1024
+      }
+    ]
+}
